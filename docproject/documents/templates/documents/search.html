@@ -1,0 +1,57 @@
+{% extends 'documents/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Search Documents</h3>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'search' %}">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="q" 
+                               placeholder="Search by title, description, or tags..." 
+                               value="{{ query }}">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+
+                {% if query %}
+                <h5 class="mt-4">Search Results for "{{ query }}"</h5>
+                
+                {% if results %}
+                <div class="list-group mt-3">
+                    {% for document in results %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ document.title }}</h6>
+                            <small>{{ document.uploaded_at|timesince }} ago</small>
+                        </div>
+                        <p class="mb-1">{{ document.description|truncatewords:30 }}</p>
+                        <small class="text-muted">
+                            Tags: {% for tag in document.tags_list %}
+                            <span class="badge bg-secondary">{{ tag }}</span>
+                            {% endfor %}
+                        </small>
+                        <div class="mt-2">
+                            <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle"></i> No documents found matching your search.
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
