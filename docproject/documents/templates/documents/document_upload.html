@@ -2,45 +2,475 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-lg-8">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h2 class="mb-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                <i class="fas fa-cloud-upload-alt me-3"></i>Upload Document
+            </h2>
+            <p class="text-white-50">Share your documents securely and organize them with ease</p>
+        </div>
+        
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Upload Document</h3>
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-file-upload me-2"></i>Document Information
+                </h4>
             </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
                     {% csrf_token %}
                     
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" required>
+                    <!-- File Upload Area -->
+                    <div class="mb-4">
+                        <label for="file" class="form-label">
+                            <i class="fas fa-paperclip me-2"></i>Document File *
+                        </label>
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" class="form-control" id="file" name="file" required 
+                                   accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.xlsx,.xls,.ppt,.pptx"
+                                   style="display: none;">
+                            <div class="upload-content" id="uploadContent">
+                                <div class="upload-icon mb-3">
+                                    <i class="fas fa-cloud-upload-alt fa-4x text-primary"></i>
+                                </div>
+                                <h5 class="mb-3">Drag & Drop your file here</h5>
+                                <p class="text-muted mb-3">or click to browse</p>
+                                <button type="button" class="btn btn-outline-primary" id="browseBtn">
+                                    <i class="fas fa-folder-open me-2"></i>Choose File
+                                </button>
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        Supported formats: PDF, Word, Excel, PowerPoint, Images, Text<br>
+                                        Maximum file size: 10MB
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="file-preview" id="filePreview" style="display: none;">
+                                <div class="file-info">
+                                    <div class="file-icon me-3">
+                                        <i class="fas fa-file fa-3x text-success"></i>
+                                    </div>
+                                    <div class="file-details">
+                                        <h6 class="file-name mb-1"></h6>
+                                        <p class="file-size text-muted mb-0"></p>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="removeFile">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="upload-progress mt-3" style="display: none;">
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                             role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    <!-- Document Title -->
+                    <div class="mb-4">
+                        <label for="title" class="form-label">
+                            <i class="fas fa-heading me-2"></i>Document Title *
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="title" name="title" required
+                               placeholder="Enter a descriptive title for your document">
+                        <div class="form-text">Give your document a clear, descriptive title</div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="tags" class="form-label">Tags (comma-separated)</label>
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label for="description" class="form-label">
+                            <i class="fas fa-align-left me-2"></i>Description
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="4"
+                                  placeholder="Provide a detailed description of the document content..."></textarea>
+                        <div class="form-text">Optional: Add a description to help you find this document later</div>
+                    </div>
+                    
+                    <!-- Tags -->
+                    <div class="mb-4">
+                        <label for="tags" class="form-label">
+                            <i class="fas fa-tags me-2"></i>Tags
+                        </label>
                         <input type="text" class="form-control" id="tags" name="tags" 
-                               placeholder="e.g., report, financial, 2024">
+                               placeholder="e.g., report, financial, 2024, important">
+                        <div class="form-text">Add comma-separated tags to organize your documents</div>
+                        
+                        <!-- Tag Suggestions -->
+                        <div class="tag-suggestions mt-3">
+                            <small class="text-muted d-block mb-2">Popular tags:</small>
+                            <div class="suggested-tags">
+                                <span class="badge bg-light text-dark me-2 mb-2 clickable-tag">report</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 clickable-tag">document</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 clickable-tag">financial</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 clickable-tag">presentation</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 clickable-tag">contract</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 clickable-tag">invoice</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 clickable-tag">meeting</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 clickable-tag">project</span>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="file" class="form-label">Document File</label>
-                        <input type="file" class="form-control" id="file" name="file" required 
-                               accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
-                        <div class="form-text">Supported formats: PDF, Word, Text, Images</div>
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg flex-fill" id="submitBtn">
+                            <i class="fas fa-upload me-2"></i>Upload Document
+                        </button>
+                        <a href="{% url 'document_list' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-upload"></i> Upload Document
-                    </button>
-                    <a href="{% url 'document_list' %}" class="btn btn-secondary">Cancel</a>
                 </form>
+            </div>
+        </div>
+        
+        <!-- Upload Tips -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card bg-info bg-opacity-10 border-info">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-lightbulb text-warning me-2"></i>Upload Tips
+                        </h6>
+                        <ul class="small mb-0">
+                            <li>Use descriptive titles and tags for better organization</li>
+                            <li>Add detailed descriptions to make searching easier</li>
+                            <li>Supported formats: PDF, Word, Excel, PowerPoint, Images</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-success bg-opacity-10 border-success">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-shield-alt text-success me-2"></i>Security
+                        </h6>
+                        <ul class="small mb-0">
+                            <li>All files are encrypted during upload</li>
+                            <li>Only you can access your documents</li>
+                            <li>Secure cloud storage with automatic backups</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.upload-area {
+    border: 3px dashed #dee2e6;
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-area::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.upload-area:hover::before {
+    left: 100%;
+}
+
+.upload-area.dragover {
+    border-color: #667eea;
+    background: rgba(102, 126, 234, 0.1);
+    transform: scale(1.02);
+}
+
+.upload-area.dragover .upload-icon i {
+    color: #667eea !important;
+    animation: bounce 1s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 60%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    80% { transform: translateY(-5px); }
+}
+
+.file-preview {
+    background: rgba(34, 197, 94, 0.1);
+    border: 2px solid #22c55e;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+}
+
+.file-details {
+    flex: 1;
+}
+
+.file-name {
+    font-weight: 600;
+    color: #22c55e;
+}
+
+.clickable-tag {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.clickable-tag:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.upload-progress .progress {
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.upload-progress .progress-bar {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+/* Form enhancements */
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.form-control-lg {
+    font-size: 1.1rem;
+    padding: 1rem 1.5rem;
+}
+
+/* Animation for upload area */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.upload-processing {
+    animation: pulse 2s ease-in-out infinite;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('file');
+    const browseBtn = document.getElementById('browseBtn');
+    const uploadContent = document.getElementById('uploadContent');
+    const filePreview = document.getElementById('filePreview');
+    const removeFileBtn = document.getElementById('removeFile');
+    const titleInput = document.getElementById('title');
+    const tagsInput = document.getElementById('tags');
+    const form = document.getElementById('uploadForm');
+
+    // Click to browse
+    browseBtn.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('click', (e) => {
+        if (e.target === uploadArea || e.target === uploadContent) {
+            fileInput.click();
+        }
+    });
+
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    // Handle file selection
+    function handleFileSelect(file) {
+        // Validate file size (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size is too large. Please select a file smaller than 10MB.');
+            return;
+        }
+
+        // Set file to input
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+
+        // Show file preview
+        showFilePreview(file);
+        
+        // Auto-fill title if empty
+        if (!titleInput.value) {
+            const fileName = file.name.replace(/\.[^/.]+$/, ""); // Remove extension
+            titleInput.value = fileName.replace(/[-_]/g, ' '); // Replace dashes and underscores
+        }
+    }
+
+    // Show file preview
+    function showFilePreview(file) {
+        uploadContent.style.display = 'none';
+        filePreview.style.display = 'block';
+        
+        const fileName = filePreview.querySelector('.file-name');
+        const fileSize = filePreview.querySelector('.file-size');
+        const fileIcon = filePreview.querySelector('.file-icon i');
+        
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        
+        // Set appropriate icon based on file type
+        const ext = file.name.split('.').pop().toLowerCase();
+        fileIcon.className = getFileIcon(ext);
+    }
+
+    // Remove file
+    removeFileBtn.addEventListener('click', () => {
+        fileInput.value = '';
+        filePreview.style.display = 'none';
+        uploadContent.style.display = 'block';
+    });
+
+    // Format file size
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Get file icon
+    function getFileIcon(ext) {
+        const icons = {
+            'pdf': 'fas fa-file-pdf fa-3x text-danger',
+            'doc': 'fas fa-file-word fa-3x text-primary',
+            'docx': 'fas fa-file-word fa-3x text-primary',
+            'xls': 'fas fa-file-excel fa-3x text-success',
+            'xlsx': 'fas fa-file-excel fa-3x text-success',
+            'ppt': 'fas fa-file-powerpoint fa-3x text-warning',
+            'pptx': 'fas fa-file-powerpoint fa-3x text-warning',
+            'jpg': 'fas fa-file-image fa-3x text-info',
+            'jpeg': 'fas fa-file-image fa-3x text-info',
+            'png': 'fas fa-file-image fa-3x text-info',
+            'txt': 'fas fa-file-alt fa-3x text-secondary'
+        };
+        return icons[ext] || 'fas fa-file fa-3x text-success';
+    }
+
+    // Clickable tags
+    const clickableTags = document.querySelectorAll('.clickable-tag');
+    clickableTags.forEach(tag => {
+        tag.addEventListener('click', function() {
+            const tagText = this.textContent;
+            const currentTags = tagsInput.value;
+            
+            if (!currentTags.includes(tagText)) {
+                const newTags = currentTags ? currentTags + ', ' + tagText : tagText;
+                tagsInput.value = newTags;
+                
+                // Visual feedback
+                this.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+                this.style.color = 'white';
+                setTimeout(() => {
+                    this.style.background = '';
+                    this.style.color = '';
+                }, 1000);
+            }
+        });
+    });
+
+    // Form submission with progress
+    form.addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submitBtn');
+        const progressContainer = document.querySelector('.upload-progress');
+        const progressBar = document.querySelector('.progress-bar');
+        
+        // Show progress
+        if (filePreview.style.display === 'block') {
+            progressContainer.style.display = 'block';
+            uploadArea.classList.add('upload-processing');
+        }
+        
+        // Update button
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+        submitBtn.disabled = true;
+        
+        // Simulate upload progress (since we can't track actual progress easily)
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 90) progress = 90;
+            progressBar.style.width = progress + '%';
+        }, 200);
+        
+        // Clean up on page unload or after 30 seconds
+        setTimeout(() => {
+            clearInterval(progressInterval);
+        }, 30000);
+    });
+
+    // Character counter for title and description
+    function addCharacterCounter(input, maxLength = null) {
+        const counter = document.createElement('div');
+        counter.className = 'form-text text-end mt-1';
+        counter.style.fontSize = '0.8rem';
+        
+        function updateCounter() {
+            const length = input.value.length;
+            counter.textContent = maxLength ? `${length}/${maxLength}` : `${length} characters`;
+            
+            if (maxLength && length > maxLength * 0.9) {
+                counter.style.color = '#dc3545';
+            } else {
+                counter.style.color = '#6c757d';
+            }
+        }
+        
+        input.addEventListener('input', updateCounter);
+        input.parentNode.appendChild(counter);
+        updateCounter();
+    }
+    
+    addCharacterCounter(titleInput, 255);
+    addCharacterCounter(document.getElementById('description'));
+});
+</script>
 {% endblock %}

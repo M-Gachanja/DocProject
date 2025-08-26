@@ -2,56 +2,613 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">Search Documents</h3>
-            </div>
-            <div class="card-body">
-                <form method="get" action="{% url 'search' %}">
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" name="q" 
-                               placeholder="Search by title, description, or tags..." 
-                               value="{{ query }}">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search"></i> Search
-                        </button>
+    <div class="col-lg-10">
+        <!-- Search Header -->
+        <div class="text-center mb-5">
+            <h2 class="mb-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                <i class="fas fa-search me-3"></i>Search Documents
+            </h2>
+            <p class="text-white-50">Find your documents quickly using our smart search</p>
+        </div>
+        
+        <!-- Search Form -->
+        <div class="card mb-4">
+            <div class="card-body p-4">
+                <form method="get" action="{% url 'search' %}" id="searchForm">
+                    <div class="search-container">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fas fa-search text-primary"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0 ps-0" 
+                                   name="q" id="searchInput"
+                                   placeholder="Search by title, description, or tags..." 
+                                   value="{{ query }}" 
+                                   autocomplete="off">
+                            <button class="btn btn-primary px-4" type="submit" id="searchBtn">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                        
+                        <!-- Search Suggestions -->
+                        <div class="search-suggestions mt-3" id="searchSuggestions" style="display: none;">
+                            <small class="text-muted d-block mb-2">Quick searches:</small>
+                            <div class="suggestion-tags">
+                                <span class="badge bg-light text-dark me-2 mb-2 suggestion-tag">recent uploads</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 suggestion-tag">pdf files</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 suggestion-tag">reports</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 suggestion-tag">documents</span>
+                                <span class="badge bg-light text-dark me-2 mb-2 suggestion-tag">presentations</span>
+                            </div>
+                        </div>
                     </div>
                 </form>
+            </div>
+        </div>
 
-                {% if query %}
-                <h5 class="mt-4">Search Results for "{{ query }}"</h5>
+        <!-- Search Results -->
+        {% if query %}
+            <div class="search-results">
+                <!-- Results Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="mb-1">Search Results</h4>
+                        <p class="text-muted mb-0">
+                            {% if results %}
+                                Found {{ results|length }} document{{ results|length|pluralize }} for 
+                                <strong>"{{ query }}"</strong>
+                            {% else %}
+                                No documents found for <strong>"{{ query }}"</strong>
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if results %}
+                        <div class="search-actions">
+                            <button class="btn btn-outline-secondary btn-sm" id="sortBtn">
+                                <i class="fas fa-sort me-1"></i>Sort
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="viewToggle">
+                                <i class="fas fa-th-list me-1"></i>List View
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
                 
                 {% if results %}
-                <div class="list-group mt-3">
-                    {% for document in results %}
-                    <div class="list-group-item">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6 class="mb-1">{{ document.title }}</h6>
-                            <small>{{ document.uploaded_at|timesince }} ago</small>
+                    <!-- Results Grid -->
+                    <div class="results-container" id="resultsContainer">
+                        {% for document in results %}
+                            <div class="result-item" data-date="{{ document.uploaded_at|date:'Y-m-d' }}" data-title="{{ document.title|lower }}">
+                                <div class="card result-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start">
+                                            <!-- Document Icon -->
+                                            <div class="flex-shrink-0 me-3">
+                                                {% with document.file.name|slice:"-4:" as file_ext %}
+                                                    {% if file_ext == ".pdf" %}
+                                                        <div class="result-icon pdf">
+                                                            <i class="fas fa-file-pdf fa-2x"></i>
+                                                        </div>
+                                                    {% elif file_ext == ".doc" or file_ext == "docx" %}
+                                                        <div class="result-icon doc">
+                                                            <i class="fas fa-file-word fa-2x"></i>
+                                                        </div>
+                                                    {% elif file_ext == ".jpg" or file_ext == ".png" or file_ext == "jpeg" %}
+                                                        <div class="result-icon img">
+                                                            <i class="fas fa-file-image fa-2x"></i>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="result-icon default">
+                                                            <i class="fas fa-file fa-2x"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
+                                            
+                                            <!-- Document Details -->
+                                            <div class="flex-grow-1">
+                                                <h5 class="result-title mb-2">
+                                                    {{ document.title }}
+                                                </h5>
+                                                
+                                                {% if document.description %}
+                                                    <p class="result-description text-muted mb-2">
+                                                        {{ document.description|truncatewords:30 }}
+                                                    </p>
+                                                {% endif %}
+                                                
+                                                <div class="result-meta mb-3">
+                                                    <small class="text-muted d-flex align-items-center mb-1">
+                                                        <i class="fas fa-calendar-alt me-2"></i>
+                                                        {{ document.uploaded_at|date:"M d, Y" }}
+                                                        <span class="mx-2">•</span>
+                                                        {{ document.uploaded_at|timesince }} ago
+                                                    </small>
+                                                    
+                                                    {% if document.tags_list %}
+                                                        <div class="result-tags">
+                                                            {% for tag in document.tags_list %}
+                                                                <span class="badge bg-secondary me-1">{{ tag }}</span>
+                                                            {% endfor %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <!-- Action Buttons -->
+                                                <div class="result-actions">
+                                                    {% if document.file %}
+                                                        <a href="{% url 'download_document' document.id %}" 
+                                                           class="btn btn-primary btn-sm me-2">
+                                                            <i class="fas fa-download me-1"></i>Download
+                                                        </a>
+                                                        <a href="{{ document.file.url }}" 
+                                                           class="btn btn-outline-secondary btn-sm me-2" 
+                                                           target="_blank">
+                                                            <i class="fas fa-eye me-1"></i>View
+                                                        </a>
+                                                    {% endif %}
+                                                    <a href="{% url 'document_detail' document.id %}" 
+                                                       class="btn btn-outline-info btn-sm">
+                                                        <i class="fas fa-info-circle me-1"></i>Details
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Load More / Pagination -->
+                    <div class="text-center mt-4">
+                        <p class="text-muted">Showing {{ results|length }} of {{ results|length }} results</p>
+                    </div>
+                    
+                {% else %}
+                    <!-- No Results -->
+                    <div class="no-results text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-search fa-5x text-muted opacity-50"></i>
                         </div>
-                        <p class="mb-1">{{ document.description|truncatewords:30 }}</p>
-                        <small class="text-muted">
-                            Tags: {% for tag in document.tags_list %}
-                            <span class="badge bg-secondary">{{ tag }}</span>
-                            {% endfor %}
-                        </small>
-                        <div class="mt-2">
-                            <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-primary">
-                                <i class="fas fa-download"></i> Download
+                        <h4 class="mb-3">No documents found</h4>
+                        <p class="text-muted mb-4">
+                            We couldn't find any documents matching "<strong>{{ query }}</strong>"
+                        </p>
+                        
+                        <div class="search-tips">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">
+                                        <i class="fas fa-lightbulb text-warning me-2"></i>Search Tips
+                                    </h6>
+                                    <ul class="list-unstyled mb-0 small">
+                                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Try different keywords or phrases</li>
+                                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Check your spelling</li>
+                                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Use shorter, more general terms</li>
+                                        <li><i class="fas fa-check text-success me-2"></i>Search by file type (e.g., "pdf", "document")</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a href="{% url 'document_list' %}" class="btn btn-primary me-3">
+                                <i class="fas fa-folder-open me-2"></i>View All Documents
+                            </a>
+                            <a href="{% url 'document_upload' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus me-2"></i>Upload New Document
                             </a>
                         </div>
                     </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-info-circle"></i> No documents found matching your search.
-                </div>
-                {% endif %}
                 {% endif %}
             </div>
-        </div>
+        {% else %}
+            <!-- Search Help -->
+            <div class="search-help">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="card h-100 bg-primary bg-opacity-10 border-primary">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-magic text-primary me-2"></i>Smart Search
+                                </h5>
+                                <p class="card-text">
+                                    Our search engine looks through document titles, descriptions, and tags 
+                                    to help you find exactly what you're looking for.
+                                </p>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-success me-2"></i>Search by title</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Search by description</li>
+                                    <li><i class="fas fa-check text-success me-2"></i>Search by tags</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card h-100 bg-success bg-opacity-10 border-success">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-lightbulb text-success me-2"></i>Search Examples
+                                </h5>
+                                <p class="card-text">
+                                    Here are some example searches to help you get started:
+                                </p>
+                                <div class="example-searches">
+                                    <span class="badge bg-light text-dark me-2 mb-2 example-search">financial report</span>
+                                    <span class="badge bg-light text-dark me-2 mb-2 example-search">meeting notes</span>
+                                    <span class="badge bg-light text-dark me-2 mb-2 example-search">contract</span>
+                                    <span class="badge bg-light text-dark me-2 mb-2 example-search">presentation</span>
+                                    <span class="badge bg-light text-dark me-2 mb-2 example-search">invoice</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+.search-container .input-group-text {
+    border-color: #dee2e6;
+}
+
+.search-container .form-control {
+    border-color: #dee2e6;
+    font-size: 1.1rem;
+}
+
+.search-container .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.suggestion-tag, .example-search {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.suggestion-tag:hover, .example-search:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.result-item {
+    margin-bottom: 1.5rem;
+}
+
+.result-card {
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.result-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.result-icon.pdf {
+    background: linear-gradient(135deg, #ff6b6b, #ffa726);
+}
+
+.result-icon.doc {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.result-icon.img {
+    background: linear-gradient(135deg, #fa709a, #fee140);
+}
+
+.result-icon.default {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.result-title {
+    font-weight: 600;
+    color: #2c3e50;
+    line-height: 1.3;
+}
+
+.result-description {
+    line-height: 1.5;
+}
+
+.result-meta {
+    font-size: 0.9rem;
+}
+
+.result-tags .badge {
+    font-size: 0.75rem;
+}
+
+.search-results {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.result-item:nth-child(odd) {
+    animation-delay: 0.1s;
+}
+
+.result-item:nth-child(even) {
+    animation-delay: 0.2s;
+}
+
+.no-results {
+    animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* List view styles */
+.list-view .result-card {
+    margin-bottom: 1rem;
+}
+
+.list-view .result-card .card-body {
+    padding: 1rem 1.5rem;
+}
+
+.list-view .result-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.list-view .result-icon i {
+    font-size: 1.5rem;
+}
+
+/* Grid view styles */
+.grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.grid-view .result-item {
+    margin-bottom: 0;
+}
+
+/* Sort animation */
+.sorting {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const searchSuggestions = document.getElementById('searchSuggestions');
+    const suggestionTags = document.querySelectorAll('.suggestion-tag');
+    const exampleSearches = document.querySelectorAll('.example-search');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const sortBtn = document.getElementById('sortBtn');
+    const viewToggle = document.getElementById('viewToggle');
+    
+    let currentView = 'card'; // 'card' or 'list'
+    let currentSort = 'date-desc'; // 'date-desc', 'date-asc', 'title-asc', 'title-desc'
+
+    // Show suggestions when input is focused and empty
+    searchInput.addEventListener('focus', function() {
+        if (!this.value.trim()) {
+            searchSuggestions.style.display = 'block';
+        }
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchSuggestions.contains(e.target) && e.target !== searchInput) {
+            searchSuggestions.style.display = 'none';
+        }
+    });
+
+    // Handle suggestion clicks
+    suggestionTags.forEach(tag => {
+        tag.addEventListener('click', function() {
+            searchInput.value = this.textContent;
+            searchSuggestions.style.display = 'none';
+            document.getElementById('searchForm').submit();
+        });
+    });
+
+    // Handle example search clicks
+    exampleSearches.forEach(search => {
+        search.addEventListener('click', function() {
+            searchInput.value = this.textContent;
+            document.getElementById('searchForm').submit();
+        });
+    });
+
+    // Real-time search suggestions (debounced)
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            // Here you could implement AJAX search suggestions
+            // For now, we'll just show/hide the existing suggestions
+            if (this.value.trim()) {
+                searchSuggestions.style.display = 'none';
+            } else {
+                searchSuggestions.style.display = 'block';
+            }
+        }, 300);
+    });
+
+    // Sort functionality
+    if (sortBtn) {
+        sortBtn.addEventListener('click', function() {
+            const options = [
+                { value: 'date-desc', text: 'Newest First' },
+                { value: 'date-asc', text: 'Oldest First' },
+                { value: 'title-asc', text: 'Title A-Z' },
+                { value: 'title-desc', text: 'Title Z-A' }
+            ];
+            
+            // Create dropdown menu
+            const dropdown = document.createElement('div');
+            dropdown.className = 'position-absolute bg-white border rounded shadow-sm p-2';
+            dropdown.style.top = '100%';
+            dropdown.style.right = '0';
+            dropdown.style.zIndex = '1000';
+            dropdown.style.minWidth = '150px';
+            
+            options.forEach(option => {
+                const item = document.createElement('div');
+                item.className = 'p-2 cursor-pointer text-sm hover:bg-gray-100 rounded';
+                item.textContent = option.text;
+                item.style.cursor = 'pointer';
+                
+                if (option.value === currentSort) {
+                    item.style.background = '#f8f9fa';
+                    item.style.fontWeight = 'bold';
+                }
+                
+                item.addEventListener('click', () => {
+                    sortResults(option.value);
+                    dropdown.remove();
+                });
+                
+                dropdown.appendChild(item);
+            });
+            
+            // Position relative to button
+            this.style.position = 'relative';
+            this.appendChild(dropdown);
+            
+            // Remove dropdown when clicking outside
+            setTimeout(() => {
+                document.addEventListener('click', function(e) {
+                    if (!dropdown.contains(e.target) && e.target !== sortBtn) {
+                        dropdown.remove();
+                    }
+                }, { once: true });
+            }, 100);
+        });
+    }
+
+    // View toggle functionality
+    if (viewToggle) {
+        viewToggle.addEventListener('click', function() {
+            if (currentView === 'card') {
+                currentView = 'list';
+                resultsContainer.className = 'results-container list-view';
+                this.innerHTML = '<i class="fas fa-th me-1"></i>Grid View';
+            } else {
+                currentView = 'card';
+                resultsContainer.className = 'results-container';
+                this.innerHTML = '<i class="fas fa-th-list me-1"></i>List View';
+            }
+        });
+    }
+
+    // Sort results function
+    function sortResults(sortType) {
+        currentSort = sortType;
+        const results = Array.from(document.querySelectorAll('.result-item'));
+        
+        // Add sorting class for animation
+        resultsContainer.classList.add('sorting');
+        
+        results.sort((a, b) => {
+            switch (sortType) {
+                case 'date-desc':
+                    return new Date(b.dataset.date) - new Date(a.dataset.date);
+                case 'date-asc':
+                    return new Date(a.dataset.date) - new Date(b.dataset.date);
+                case 'title-asc':
+                    return a.dataset.title.localeCompare(b.dataset.title);
+                case 'title-desc':
+                    return b.dataset.title.localeCompare(a.dataset.title);
+                default:
+                    return 0;
+            }
+        });
+        
+        // Re-append sorted results
+        setTimeout(() => {
+            results.forEach(result => resultsContainer.appendChild(result));
+            resultsContainer.classList.remove('sorting');
+        }, 200);
+    }
+
+    // Highlight search terms in results
+    function highlightSearchTerms() {
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) return;
+        
+        const terms = query.split(' ').filter(term => term.length > 2);
+        const resultTitles = document.querySelectorAll('.result-title');
+        const resultDescriptions = document.querySelectorAll('.result-description');
+        
+        [...resultTitles, ...resultDescriptions].forEach(element => {
+            let html = element.innerHTML;
+            terms.forEach(term => {
+                const regex = new RegExp(`(${term})`, 'gi');
+                html = html.replace(regex, '<mark class="bg-warning">$1</mark>');
+            });
+            element.innerHTML = html;
+        });
+    }
+
+    // Apply highlighting if there are results
+    if (document.querySelector('.result-item')) {
+        highlightSearchTerms();
+    }
+
+    // Add loading animation to search button
+    document.getElementById('searchForm').addEventListener('submit', function() {
+        const searchBtn = document.getElementById('searchBtn');
+        searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Searching...';
+        searchBtn.disabled = true;
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Focus search on Ctrl/Cmd + K
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+        }
+        
+        // Clear search on Escape
+        if (e.key === 'Escape' && document.activeElement === searchInput) {
+            searchInput.value = '';
+            searchSuggestions.style.display = 'block';
+        }
+    });
+});
+</script>
 {% endblock %}
