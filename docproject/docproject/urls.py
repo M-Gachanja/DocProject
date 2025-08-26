@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
+from django.conf import settings
+from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
-from documents.views import DocumentViewSet, home, document_list, document_upload, document_detail, search, register
+from documents.views import DocumentViewSet, home, document_list, document_upload, document_detail, search, register, download_document
 
 # Create router for API
 router = DefaultRouter()
@@ -15,11 +17,12 @@ urlpatterns = [
     path('documents/', document_list, name='document_list'),
     path('documents/upload/', document_upload, name='document_upload'),
     path('documents/<int:pk>/', document_detail, name='document_detail'),
+    path('documents/<int:pk>/download/', download_document, name='download_document'),
     path('search/', search, name='search'),
     
     # Authentication URLs
     path('login/', auth_views.LoginView.as_view(template_name='documents/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('logout/', auth_views.LogoutView.as_view(http_method_names=['get', 'post']), name='logout'),
     
     # Admin URL
     path('admin/', admin.site.urls),
@@ -27,3 +30,8 @@ urlpatterns = [
     # API URLs
     path('api/', include(router.urls)),
 ]
+
+# Serve media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

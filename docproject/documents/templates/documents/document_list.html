@@ -14,18 +14,27 @@
         <div class="card h-100">
             <div class="card-body">
                 <h5 class="card-title">{{ document.title }}</h5>
-                <p class="card-text text-muted">{{ document.description|truncatewords:20 }}</p>
+                <p class="card-text text-muted">{{ document.description|truncatewords:20|default:"No description" }}</p>
                 <p class="card-text">
                     <small class="text-muted">
                         <i class="fas fa-calendar"></i> {{ document.uploaded_at|date:"M d, Y" }}
                     </small>
                 </p>
-                <div class="d-flex justify-content-between">
-                    <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                        <i class="fas fa-download"></i> Download
-                    </a>
-                    <a href="{% url 'document_detail' document.id %}" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-eye"></i> View
+                <div class="d-flex justify-content-between gap-2">
+                    {% if document.file %}
+                        <a href="{% url 'download_document' document.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                        <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    {% else %}
+                        <span class="btn btn-sm btn-outline-danger" disabled>
+                            <i class="fas fa-exclamation-triangle"></i> No file
+                        </span>
+                    {% endif %}
+                    <a href="{% url 'document_detail' document.id %}" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-info-circle"></i> Details
                     </a>
                 </div>
             </div>
