@@ -49,9 +49,7 @@ INSTALLED_APPS = [
     'storages',  # Move storages to the end
 ]
 
-# AWS S3 Configuration (only use in production)
-AWS_STORAGE_BUCKET_NAME = 'your-bucket-name'
-AWS_S3_REGION_NAME = 'us-east-1'
+
 
 # Media files configuration
 MEDIA_URL = '/media/'
